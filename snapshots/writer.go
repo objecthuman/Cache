@@ -15,14 +15,13 @@ func createFileHeader() (*bytes.Buffer, error) {
 	if _, err := buffer.WriteString(constants.FILE_HEADER); err != nil {
 		return nil, err
 	}
-
 	if err := binary.Write(&buffer, binary.LittleEndian, int64(constants.CURRENT_VERSION)); err != nil {
 		return nil, err
 	}
 	return &buffer, nil
 }
 
-func convertStringMapToBin(mainMap schemas.MainMap) ([]byte, error) {
+func convertStringMapToBin(mainMap *schemas.MainMap) ([]byte, error) {
 	stringMap := mainMap.STRING_MAP
 	var buffer bytes.Buffer
 	for key, value := range stringMap {
@@ -56,7 +55,7 @@ func convertStringMapToBin(mainMap schemas.MainMap) ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
-func convertIntegerMapToBinary(minmap schemas.MainMap) ([]byte, error) {
+func convertIntegerMapToBinary(minmap *schemas.MainMap) ([]byte, error) {
 	var buffer bytes.Buffer
 	integerMap := minmap.INTEGER_MAP
 	for key, value := range integerMap {
@@ -84,7 +83,7 @@ func convertIntegerMapToBinary(minmap schemas.MainMap) ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
-func convertIntegerArrayMapToBinary(minmap schemas.MainMap) ([]byte, error) {
+func convertIntegerArrayMapToBinary(minmap *schemas.MainMap) ([]byte, error) {
 	var buffer bytes.Buffer
 	integerArray := minmap.INTEGER_ARRAY_MAP
 	for key, value := range integerArray {
@@ -116,7 +115,66 @@ func convertIntegerArrayMapToBinary(minmap schemas.MainMap) ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
-func createBytesForSnapShot(mainMap schemas.MainMap) *bytes.Buffer {
+func convertFloatMapToBinary(minmap *schemas.MainMap) ([]byte, error) {
+	var buffer bytes.Buffer
+	floatMap := minmap.FLOAT_MAP
+	for key, value := range floatMap {
+		keyBytes := []byte(key)
+
+		// write the type of the value
+		if err := binary.Write(&buffer, binary.LittleEndian, int64(constants.FLOAT_TYPE)); err != nil {
+			return nil, err
+		}
+		// write the length of the key
+		if err := binary.Write(&buffer, binary.LittleEndian, int64(len(keyBytes))); err != nil {
+			return nil, err
+		}
+		// write the key
+		if err := binary.Write(&buffer, binary.LittleEndian, keyBytes); err != nil {
+			return nil, err
+		}
+		buffer.WriteByte(byte(0))
+		// write the actual value
+		if err := binary.Write(&buffer, binary.LittleEndian, (value)); err != nil {
+			return nil, err
+		}
+		buffer.WriteString("\r\n")
+	}
+	return buffer.Bytes(), nil
+}
+
+func convertFloatArrayMapToBinary(minmap *schemas.MainMap) ([]byte, error) {
+	var buffer bytes.Buffer
+	floatArray := minmap.FLOAT_ARRAY_MAP
+	for key, value := range floatArray {
+		keyBytes := []byte(key)
+
+		// write the type of the value
+		if err := binary.Write(&buffer, binary.LittleEndian, int64(constants.FLOAT_ARRAY_TYPE)); err != nil {
+			return nil, err
+		}
+		// write the length of the key
+		if err := binary.Write(&buffer, binary.LittleEndian, int64(len(keyBytes))); err != nil {
+			return nil, err
+		}
+		// write the key
+		if err := binary.Write(&buffer, binary.LittleEndian, keyBytes); err != nil {
+			return nil, err
+		}
+		buffer.WriteByte(byte(0))
+		// write the length of float array
+		if err := binary.Write(&buffer, binary.LittleEndian, int64(len(value))); err != nil {
+			return nil, err
+		}
+		// write the actual value
+		if err := binary.Write(&buffer, binary.LittleEndian, value); err != nil {
+			return nil, err
+		}
+		buffer.WriteString("\r\n")
+	}
+	return buffer.Bytes(), nil
+}
+func createBytesForSnapShot(mainMap *schemas.MainMap) *bytes.Buffer {
 	mainBuffer, err := createFileHeader()
 	if err != nil {
 		zap.L().Error("Failed to create file header", zap.Error(err))
@@ -133,12 +191,22 @@ func createBytesForSnapShot(mainMap schemas.MainMap) *bytes.Buffer {
 	}
 	integerArrayBytes, err := convertIntegerArrayMapToBinary(mainMap)
 	if err != nil {
-		zap.L().Error("Failed creating integer map bin", zap.Error(err))
+		zap.L().Error("Failed creating integer array map bin", zap.Error(err))
 	}
 	mainBuffer.Write(integerArrayBytes)
+	floatBinBytes, err := convertFloatMapToBinary(mainMap)
+	if err != nil {
+		zap.L().Error("Failed creating float map bin", zap.Error(err))
+	}
+	mainBuffer.Write(floatBinBytes)
+	floatArrayBin, err := convertFloatArrayMapToBinary(mainMap)
+	if err != nil {
+		zap.L().Error("Failed creating float array map bin", zap.Error(err))
+	}
+	mainBuffer.Write(floatArrayBin)
 	return mainBuffer
 }
-func takeSnapShot(wg *sync.WaitGroup, mainMap schemas.MainMap) {
+func takeSnapShot(wg *sync.WaitGroup, mainMap *schemas.MainMap) {
 	defer wg.Done()
 	file, err := os.Create(constants.SNAPSHOT_FILE_NAME)
 	if err != nil {
@@ -150,7 +218,7 @@ func takeSnapShot(wg *sync.WaitGroup, mainMap schemas.MainMap) {
 	zap.L().Info("Snapshot taken successfully")
 	file.Close()
 }
-func RunSnapShotTaker(mainMap schemas.MainMap) {
+func RunSnapShotTaker(mainMap *schemas.MainMap) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go takeSnapShot(&wg, mainMap)

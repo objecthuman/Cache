@@ -19,6 +19,8 @@ func CreateMainMap() MainMap {
 		STRING_MAP:        make(map[string]string),
 		INTEGER_ARRAY_MAP: make(map[string][]int64),
 		STRING_ARRAY_MAP:  make(map[string][]string),
+		FLOAT_MAP:         make(map[string]float64),
+		FLOAT_ARRAY_MAP:   make(map[string][]float64),
 	}
 }
 
@@ -41,6 +43,15 @@ func (m *MainMap) SetStringArray(key string, value []string) {
 	zap.L().Info("Setting String Array", zap.String("key", key), zap.Strings("value", value))
 	m.STRING_ARRAY_MAP[key] = value
 }
+func (m *MainMap) SetFloat(key string, value float64) {
+	zap.L().Info("Setting Float", zap.String("key", key), zap.Float64("value", value))
+	m.FLOAT_MAP[key] = value
+}
+
+func (m *MainMap) SetFloatArray(key string, value []float64) {
+	zap.L().Info("Setting Float Araay", zap.String("key", key), zap.Float64s("value", value))
+	m.FLOAT_ARRAY_MAP[key] = value
+}
 
 func (m *MainMap) getValue(key string) interface{} {
 	if stringValue, ok := m.STRING_MAP[key]; ok {
@@ -62,13 +73,4 @@ func (m *MainMap) getValue(key string) interface{} {
 		return floatArrayValue
 	}
 	return nil
-}
-func (m *MainMap) SetFloat(key string, value float64) {
-	zap.L().Info("Setting Float", zap.String("key", key), zap.Float64("value", value))
-	m.FLOAT_MAP[key] = value
-}
-
-func (m *MainMap) SetFloatArray(key string, value []float64) {
-	zap.L().Info("Setting Float Araay", zap.String("key", key), zap.Float64s("value", value))
-	m.FLOAT_ARRAY_MAP[key] = value
 }

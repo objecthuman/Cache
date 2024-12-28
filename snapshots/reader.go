@@ -6,6 +6,7 @@ import (
 	"in-memory-store/constants"
 	"in-memory-store/schemas"
 	"io"
+	"math"
 	"os"
 
 	"go.uber.org/zap"
@@ -83,6 +84,37 @@ func (reader *BinaryReader) getInt64ArrayDataFromBlock(length int64) ([]int64, e
 	return int64Array, nil
 }
 
+func (reader *BinaryReader) getFloat64DataFromBlock() (float64, error) {
+	bytes := make([]byte, constants.FLOAT_TYPE_LENGTH)
+	l, err := reader.file.Read(bytes)
+	if err != nil {
+		return 0, err
+	}
+	if l < constants.FLOAT_TYPE_LENGTH {
+		return 0, fmt.Errorf("Expected 8 bytes but found only %d while reading float", l)
+	}
+	bits := binary.LittleEndian.Uint64(bytes)
+	return math.Float64frombits(bits), nil
+}
+func (reader *BinaryReader) getFloat64ArrayDataFromBlock(length int64) ([]float64, error) {
+	bytes := make([]byte, length*int64(constants.FLOAT_TYPE_LENGTH))
+	l, err := reader.file.Read(bytes)
+	if err != nil {
+		return nil, err
+	}
+	if l < int(length) {
+		return nil, fmt.Errorf("Expected 8 bytes but found only %d while reading float", l)
+	}
+	var float64Array []float64
+	for i := 0; i < int(length*int64(constants.FLOAT_TYPE_LENGTH)); i += 8 {
+		bits := binary.LittleEndian.Uint64(bytes[i : i+8])
+		float64Array = append(float64Array, math.Float64frombits(bits))
+	}
+
+	return float64Array, nil
+
+}
+
 func (reader *BinaryReader) getStringDataFromBlock(stringLength int64) (string, error) {
 	bytes := make([]byte, stringLength+1)
 	l, err := reader.file.Read(bytes)
@@ -109,7 +141,7 @@ func ReadSnapShotFile(mainMap *schemas.MainMap) {
 	f, err := os.Open(constants.SNAPSHOT_FILE_NAME)
 	defer f.Close()
 	if err != nil {
-		zap.L().Error("Error reading snapshot file", zap.Error(err))
+		zap.L().Warn("Error reading snapshot file", zap.Error(err))
 		return
 	}
 	reader := CreateBinaryReader(f)
@@ -136,14 +168,14 @@ func ReadSnapShotFile(mainMap *schemas.MainMap) {
 		if handleError(err, "Error while reading key") {
 			return
 		}
-
-		if blockValueType == int64(constants.INTEGER_TYPE) {
+		switch blockValueType {
+		case constants.INTEGER_TYPE:
 			blockValue, err := reader.getInt64DataFromBlock()
 			if handleError(err, "Error while reading integer block value") {
 				return
 			}
 			mainMap.SetInteger(key, blockValue)
-		} else if blockValueType == int64(constants.STRING_TYPE) {
+		case constants.STRING_TYPE:
 			valueLength, err := reader.getInt64DataFromBlock()
 			if handleError(err, "Error while reading string length for block value") {
 				return
@@ -153,9 +185,8 @@ func ReadSnapShotFile(mainMap *schemas.MainMap) {
 				return
 			}
 			mainMap.SetString(key, blockValue)
-		} else if blockValueType == int64(constants.INTEGER_ARRAY_TYPE) {
+		case constants.INTEGER_ARRAY_TYPE:
 			valueLength, err := reader.getInt64DataFromBlock()
-			fmt.Println("Length of array", valueLength)
 			if handleError(err, "Error while reading integer array length for block value") {
 				return
 			}
@@ -164,8 +195,24 @@ func ReadSnapShotFile(mainMap *schemas.MainMap) {
 				return
 			}
 			mainMap.SetIntegerArray(key, blockValue)
+		case constants.FLOAT_TYPE:
+			blockValue, err := reader.getFloat64DataFromBlock()
+			if handleError(err, "Error while reading float block value") {
+				return
+			}
+			mainMap.SetFloat(key, blockValue)
+		case constants.FLOAT_ARRAY_TYPE:
+			valueLength, err := reader.getInt64DataFromBlock()
+			fmt.Printf("length of float array %d", valueLength)
+			if handleError(err, "Error while reading float array length for block value") {
+				return
+			}
+			blockValue, err := reader.getFloat64ArrayDataFromBlock(valueLength)
+			if handleError(err, "Error while reading float array block value") {
+				return
+			}
+			mainMap.SetFloatArray(key, blockValue)
 		}
-
 		err = reader.skipBlockSeperator()
 		if handleError(err, "Error while skipping block") {
 			return

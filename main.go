@@ -27,6 +27,9 @@ func main() {
 	globalMap.SetIntegerArray("int arr", arr)
 	arr2 := []int64{80, 90, 500, 200, 80808080}
 	globalMap.SetIntegerArray("int arr12", arr2)
-	snapshots.RunSnapShotTaker(globalMap)
+	floatArray := []float64{69.69, 20.22, 33.33}
+	globalMap.SetFloatArray("nirajanArray", floatArray)
+	globalMap.SetFloat("nirajanFloat", float64(69.69))
+	snapshots.RunSnapShotTaker(&globalMap)
 	logger.Info("Application Closing....")
 }
