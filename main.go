@@ -12,7 +12,7 @@ func main() {
 	globalMap := schemas.CreateMainMap()
 	logger.Info("Application Initilized")
 	snapshots.ReadSnapShotFile(&globalMap)
-	fmt.Println("Main map is", globalMap)
+	fmt.Println(globalMap)
 
 	// globalMap.SetInteger("thisisveryveryveryveryveryverylong", int64(458234092380598235))
 	// globalMap.SetInteger("minusOne", int64(-1))
@@ -23,13 +23,17 @@ func main() {
 	// globalMap.SetInteger("hehehehe", int64(69))
 	// globalMap.SetString("firstString", "this is the value of the first string")
 	// globalMap.SetString("New string", "new string")
-	arr := []int64{10, 20, 30, 40, 50}
-	globalMap.SetIntegerArray("int arr", arr)
-	arr2 := []int64{80, 90, 500, 200, 80808080}
-	globalMap.SetIntegerArray("int arr12", arr2)
-	floatArray := []float64{69.69, 20.22, 33.33}
-	globalMap.SetFloatArray("nirajanArray", floatArray)
-	globalMap.SetFloat("nirajanFloat", float64(69.69))
+	// arr := []int64{10, 20, 30, 40, 50}
+	// globalMap.SetIntegerArray("int arr", arr)
+	// arr2 := []int64{80, 90, 500, 200, 80808080}
+	// globalMap.SetIntegerArray("int arr12", arr2)
+	// floatArray := []float64{69.69, 20.22, 33.33}
+	// globalMap.SetFloatArray("nirajanArray", floatArray)
+	// globalMap.SetFloat("nirajanFloat", float64(69.69))
+	stringArray := []string{"hello", "how are you", "hehehhehehh"}
+	globalMap.SetStringArray("str array", stringArray)
+	stringArray2 := []string{"brrr", "fff"}
+	globalMap.SetStringArray("str212", stringArray2)
 	snapshots.RunSnapShotTaker(&globalMap)
 	logger.Info("Application Closing....")
 }

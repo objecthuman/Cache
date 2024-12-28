@@ -126,6 +126,25 @@ func (reader *BinaryReader) getStringDataFromBlock(stringLength int64) (string, 
 	}
 	return string(bytes[:stringLength]), err
 }
+func (reader *BinaryReader) getStringArrayDataFromBlock(stringArrayLength int64) ([]string, error) {
+	stringArray := []string{}
+	for i := 0; i < int(stringArrayLength); i++ {
+		stringLength, err := reader.getInt64DataFromBlock()
+		if err != nil {
+			return nil, fmt.Errorf("Failed to read string length at index %d", i)
+		}
+		bytes := make([]byte, stringLength+1)
+		l, err := reader.file.Read(bytes)
+		if err != nil {
+			return nil, err
+		}
+		if l < int(stringLength+1) {
+			return nil, fmt.Errorf("Expected %d bytes but found only %d while reading string (array)", stringLength, l)
+		}
+		stringArray = append(stringArray, string(bytes[:stringLength]))
+	}
+	return stringArray, nil
+}
 func handleError(err error, context string) bool {
 	if err == io.EOF {
 		return true
@@ -170,48 +189,57 @@ func ReadSnapShotFile(mainMap *schemas.MainMap) {
 		}
 		switch blockValueType {
 		case constants.INTEGER_TYPE:
-			blockValue, err := reader.getInt64DataFromBlock()
+			intValue, err := reader.getInt64DataFromBlock()
 			if handleError(err, "Error while reading integer block value") {
 				return
 			}
-			mainMap.SetInteger(key, blockValue)
+			mainMap.SetInteger(key, intValue)
 		case constants.STRING_TYPE:
-			valueLength, err := reader.getInt64DataFromBlock()
+			stringLength, err := reader.getInt64DataFromBlock()
 			if handleError(err, "Error while reading string length for block value") {
 				return
 			}
-			blockValue, err := reader.getStringDataFromBlock(valueLength)
+			stringValue, err := reader.getStringDataFromBlock(stringLength)
 			if handleError(err, "Error while reading block value") {
 				return
 			}
-			mainMap.SetString(key, blockValue)
+			mainMap.SetString(key, stringValue)
 		case constants.INTEGER_ARRAY_TYPE:
-			valueLength, err := reader.getInt64DataFromBlock()
+			intArrayLength, err := reader.getInt64DataFromBlock()
 			if handleError(err, "Error while reading integer array length for block value") {
 				return
 			}
-			blockValue, err := reader.getInt64ArrayDataFromBlock(valueLength)
+			blockValue, err := reader.getInt64ArrayDataFromBlock(intArrayLength)
 			if handleError(err, "Error while reading integer array block value") {
 				return
 			}
 			mainMap.SetIntegerArray(key, blockValue)
 		case constants.FLOAT_TYPE:
-			blockValue, err := reader.getFloat64DataFromBlock()
+			floatValue, err := reader.getFloat64DataFromBlock()
 			if handleError(err, "Error while reading float block value") {
 				return
 			}
-			mainMap.SetFloat(key, blockValue)
+			mainMap.SetFloat(key, floatValue)
 		case constants.FLOAT_ARRAY_TYPE:
-			valueLength, err := reader.getInt64DataFromBlock()
-			fmt.Printf("length of float array %d", valueLength)
+			floatArrayLength, err := reader.getInt64DataFromBlock()
 			if handleError(err, "Error while reading float array length for block value") {
 				return
 			}
-			blockValue, err := reader.getFloat64ArrayDataFromBlock(valueLength)
+			blockValue, err := reader.getFloat64ArrayDataFromBlock(floatArrayLength)
 			if handleError(err, "Error while reading float array block value") {
 				return
 			}
 			mainMap.SetFloatArray(key, blockValue)
+		case constants.STRING_ARRAY_TYPE:
+			floatArrayLength, err := reader.getInt64DataFromBlock()
+			if handleError(err, "Error while reading string array length for block value") {
+				return
+			}
+			blockValue, err := reader.getStringArrayDataFromBlock(floatArrayLength)
+			if handleError(err, "Error while reading string array block value") {
+				return
+			}
+			mainMap.SetStringArray(key, blockValue)
 		}
 		err = reader.skipBlockSeperator()
 		if handleError(err, "Error while skipping block") {
