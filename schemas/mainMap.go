@@ -2,7 +2,9 @@ package schemas
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+
 	"go.uber.org/zap"
 )
 
@@ -13,6 +15,7 @@ type MainMap struct {
 	STRING_ARRAY_MAP  map[string][]string
 	FLOAT_MAP         map[string]float64
 	FLOAT_ARRAY_MAP   map[string][]float64
+	TotalKeys         int
 }
 
 func CreateMainMap() MainMap {
@@ -23,36 +26,64 @@ func CreateMainMap() MainMap {
 		STRING_ARRAY_MAP:  make(map[string][]string),
 		FLOAT_MAP:         make(map[string]float64),
 		FLOAT_ARRAY_MAP:   make(map[string][]float64),
+		TotalKeys:         0,
 	}
+}
+
+func (m *MainMap) SetValue(key string, value interface{}) {
+	switch v := value.(type) {
+	case int64:
+		m.SetInteger(key, v)
+	case string:
+		m.SetString(key, v)
+	case float64:
+		m.SetFloat(key, v)
+	case []int64:
+		m.SetIntegerArray(key, v)
+	case []string:
+		m.SetStringArray(key, v)
+	case []float64:
+		m.SetFloatArray(key, v)
+	default:
+		zap.L().Warn("Unsupported value type", zap.String("key", key), zap.Any("value", value))
+		return
+	}
+	m.TotalKeys++
 }
 
 func (m *MainMap) SetInteger(key string, value int64) {
 	zap.L().Info("Setting Integer", zap.String("key", key), zap.Int64("value", value))
 	m.INTEGER_MAP[key] = value
+	m.TotalKeys++
 }
 
 func (m *MainMap) SetString(key string, value string) {
 	zap.L().Info("Setting String", zap.String("key", key), zap.String("value", value))
 	m.STRING_MAP[key] = value
+	m.TotalKeys++
 }
 
 func (m *MainMap) SetIntegerArray(key string, value []int64) {
 	zap.L().Info("Setting Integer Array", zap.String("key", key), zap.Int64s("value", value))
 	m.INTEGER_ARRAY_MAP[key] = value
+	m.TotalKeys++
 }
 
 func (m *MainMap) SetStringArray(key string, value []string) {
 	zap.L().Info("Setting String Array", zap.String("key", key), zap.Strings("value", value))
 	m.STRING_ARRAY_MAP[key] = value
+	m.TotalKeys++
 }
 func (m *MainMap) SetFloat(key string, value float64) {
 	zap.L().Info("Setting Float", zap.String("key", key), zap.Float64("value", value))
 	m.FLOAT_MAP[key] = value
+	m.TotalKeys++
 }
 
 func (m *MainMap) SetFloatArray(key string, value []float64) {
 	zap.L().Info("Setting Float Araay", zap.String("key", key), zap.Float64s("value", value))
 	m.FLOAT_ARRAY_MAP[key] = value
+	m.TotalKeys++
 }
 
 func (m *MainMap) getValue(key string) interface{} {
