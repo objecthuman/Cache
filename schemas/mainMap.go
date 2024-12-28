@@ -1,6 +1,8 @@
 package schemas
 
 import (
+	"encoding/json"
+	"fmt"
 	"go.uber.org/zap"
 )
 
@@ -73,4 +75,13 @@ func (m *MainMap) getValue(key string) interface{} {
 		return floatArrayValue
 	}
 	return nil
+}
+
+func (m *MainMap) Print() {
+	jsonData, err := json.MarshalIndent(m, "", "  ")
+	if err != nil {
+		fmt.Printf("Error formatting MainMap to JSON: %v\n", err)
+		return
+	}
+	fmt.Println(string(jsonData))
 }
