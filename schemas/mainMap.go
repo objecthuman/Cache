@@ -2,9 +2,7 @@ package schemas
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-
 	"go.uber.org/zap"
 )
 
@@ -18,8 +16,8 @@ type MainMap struct {
 	TotalKeys         int
 }
 
-func CreateMainMap() MainMap {
-	return MainMap{
+func CreateMainMap() *MainMap {
+	return &MainMap{
 		INTEGER_MAP:       make(map[string]int64),
 		STRING_MAP:        make(map[string]string),
 		INTEGER_ARRAY_MAP: make(map[string][]int64),
@@ -28,27 +26,6 @@ func CreateMainMap() MainMap {
 		FLOAT_ARRAY_MAP:   make(map[string][]float64),
 		TotalKeys:         0,
 	}
-}
-
-func (m *MainMap) SetValue(key string, value interface{}) {
-	switch v := value.(type) {
-	case int64:
-		m.SetInteger(key, v)
-	case string:
-		m.SetString(key, v)
-	case float64:
-		m.SetFloat(key, v)
-	case []int64:
-		m.SetIntegerArray(key, v)
-	case []string:
-		m.SetStringArray(key, v)
-	case []float64:
-		m.SetFloatArray(key, v)
-	default:
-		zap.L().Warn("Unsupported value type", zap.String("key", key), zap.Any("value", value))
-		return
-	}
-	m.TotalKeys++
 }
 
 func (m *MainMap) SetInteger(key string, value int64) {
