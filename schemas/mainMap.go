@@ -31,36 +31,35 @@ func CreateMainMap() *MainMap {
 func (m *MainMap) SetInteger(key string, value int64) {
 	zap.L().Info("Setting Integer", zap.String("key", key), zap.Int64("value", value))
 	m.INTEGER_MAP[key] = value
-	m.TotalKeys++
+
 }
 
 func (m *MainMap) SetString(key string, value string) {
 	zap.L().Info("Setting String", zap.String("key", key), zap.String("value", value))
 	m.STRING_MAP[key] = value
-	m.TotalKeys++
+
 }
 
 func (m *MainMap) SetIntegerArray(key string, value []int64) {
 	zap.L().Info("Setting Integer Array", zap.String("key", key), zap.Int64s("value", value))
 	m.INTEGER_ARRAY_MAP[key] = value
-	m.TotalKeys++
+
 }
 
 func (m *MainMap) SetStringArray(key string, value []string) {
 	zap.L().Info("Setting String Array", zap.String("key", key), zap.Strings("value", value))
 	m.STRING_ARRAY_MAP[key] = value
-	m.TotalKeys++
+
 }
 func (m *MainMap) SetFloat(key string, value float64) {
 	zap.L().Info("Setting Float", zap.String("key", key), zap.Float64("value", value))
 	m.FLOAT_MAP[key] = value
-	m.TotalKeys++
+
 }
 
 func (m *MainMap) SetFloatArray(key string, value []float64) {
 	zap.L().Info("Setting Float Araay", zap.String("key", key), zap.Float64s("value", value))
 	m.FLOAT_ARRAY_MAP[key] = value
-	m.TotalKeys++
 }
 
 func (m *MainMap) getValue(key string) interface{} {
