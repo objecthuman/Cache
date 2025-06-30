@@ -7,24 +7,24 @@ import (
 )
 
 type MainMap struct {
-	INTEGER_MAP       map[string]int64
-	INTEGER_ARRAY_MAP map[string][]int64
-	STRING_MAP        map[string]string
-	STRING_ARRAY_MAP  map[string][]string
-	FLOAT_MAP         map[string]float64
-	FLOAT_ARRAY_MAP   map[string][]float64
-	TotalKeys         int
+	INTEGER_MAP         map[string]int64
+	INTEGER_ARRAY_MAP   map[string][]int64
+	STRING_MAP          map[string]string
+	STRING_ARRAY_MAP    map[string][]string
+	FLOAT_MAP           map[string]float64
+	FLOAT_ARRAY_MAP     map[string][]float64
+	TotalNoOfOperations int
 }
 
 func CreateMainMap() *MainMap {
 	return &MainMap{
-		INTEGER_MAP:       make(map[string]int64),
-		STRING_MAP:        make(map[string]string),
-		INTEGER_ARRAY_MAP: make(map[string][]int64),
-		STRING_ARRAY_MAP:  make(map[string][]string),
-		FLOAT_MAP:         make(map[string]float64),
-		FLOAT_ARRAY_MAP:   make(map[string][]float64),
-		TotalKeys:         0,
+		INTEGER_MAP:         make(map[string]int64),
+		STRING_MAP:          make(map[string]string),
+		INTEGER_ARRAY_MAP:   make(map[string][]int64),
+		STRING_ARRAY_MAP:    make(map[string][]string),
+		FLOAT_MAP:           make(map[string]float64),
+		FLOAT_ARRAY_MAP:     make(map[string][]float64),
+		TotalNoOfOperations: 0,
 	}
 }
 

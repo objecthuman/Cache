@@ -26,15 +26,15 @@ func SetValue(m *schemas.MainMap, key string, value interface{}) {
 		zap.L().Warn("Unsupported value type", zap.String("key", key), zap.Any("value", value))
 		return
 	}
-	m.TotalKeys++
-	if (m.TotalKeys % constants.RUN_SNAPSHOT_AFTER) == 0 {
+	m.TotalNoOfOperations++
+	if (m.TotalNoOfOperations % constants.RUN_SNAPSHOT_AFTER) == 0 {
 		snapshots.RunSnapShotTaker(m)
 	}
 }
 func main() {
 	logger := GetLogger()
 	defer logger.Sync()
-	globalMap := (schemas.CreateMainMap())
+	globalMap := schemas.CreateMainMap()
 	defer snapshots.RunSnapShotTaker(globalMap)
 	logger.Info("Application Initilized")
 	snapshots.ReadSnapShotFile(globalMap)
